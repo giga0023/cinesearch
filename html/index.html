@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineSearch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── RESET & VARIABILI ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0c0c0f;
+      --surface:   #13131a;
+      --border:    #2a2a38;
+      --accent:    #e8b84b;
+      --accent2:   #c0392b;
+      --text:      #e8e6e0;
+      --muted:     #7a7870;
+      --radius:    12px;
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 3rem 2rem 2rem;
+      text-align: center;
+    }
+
+    header::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 3px;
+      background: var(--accent);
+      margin: 1.5rem auto 0;
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .logo span {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+    }
+
+    /* ── SEARCH BAR ── */
+    .search-section {
+      max-width: 640px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .search-wrapper {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .search-wrapper:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232, 184, 75, 0.12);
+    }
+
+    #searchInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 300;
+      padding: 1rem 1.25rem;
+    }
+
+    #searchInput::placeholder { color: var(--muted); }
+
+    #searchBtn {
+      background: var(--accent);
+      color: #0c0c0f;
+      border: none;
+      padding: 0 1.5rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    #searchBtn:hover { background: #f5cc6a; }
+
+    /* ── AREA STATO ── */
+    /*
+      Questo div mostra messaggi di stato: "Caricamento...", errori, ecc.
+      Gestiscilo in app.js con: statusEl.innerHTML = '...'
+
+      Per lo spinner di caricamento usa:
+        statusEl.innerHTML = '<div class="spinner"></div>'
+    */
+    #status {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      min-height: 60px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 28px; height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── GRIGLIA RISULTATI ── */
+    /*
+      Le .movie-card vanno create in app.js e inserite qui.
+      Struttura HTML attesa per ogni card:
+
+        <div class="movie-card">
+          <img class="card-poster" src="..." alt="..." />
+          <div class="card-body">
+            <div class="card-title">Titolo del film</div>
+            <div class="card-meta">
+              <span class="card-year">2010</span>
+              <span class="card-rating">★ 8.2</span>
+            </div>
+          </div>
+        </div>
+
+      Aggiungi un click listener a ogni card per aprire il modal con i dettagli.
+    */
+    #results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1.25rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    .movie-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .movie-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--accent);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      display: block;
+      background: var(--border);
+    }
+
+    .card-body { padding: 0.75rem 0.9rem; }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    .card-year  { font-size: 0.78rem; color: var(--muted); }
+    .card-rating { font-size: 0.78rem; font-weight: 500; color: var(--accent); }
+
+    /* ── MODAL DETTAGLI ── */
+    /*
+      Apri il modal aggiungendo la classe "open":   modal.classList.add('open')
+      Chiudi il modal rimuovendola:                 modal.classList.remove('open')
+
+      Metti i listener di chiusura su:
+        - #closeModal  (bottone X)
+        - #modalOverlay (sfondo scuro)
+
+      Riempi #modalContent con innerHTML in app.js.
+      Struttura HTML attesa per il contenuto del modal:
+
+        <img class="modal-poster" src="..." alt="..." />
+        <div class="modal-info">
+          <h2 class="modal-title">Titolo</h2>
+          <p class="modal-tagline">Tagline del film</p>
+
+          <div class="modal-badges">
+            <span class="badge accent">★ 8.2</span>
+            <span class="badge">2010</span>
+            <span class="badge">148 min</span>
+            <span class="badge">Azione</span>   ← uno per ogni genere
+          </div>
+
+          <p class="modal-overview">Trama del film...</p>
+
+          <div class="modal-stats">
+            <div class="stat-item">
+              <div class="stat-value">$160M</div>
+              <div class="stat-label">Budget</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">$836M</div>
+              <div class="stat-label">Incasso</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">74</div>
+              <div class="stat-label">Metascore</div>
+            </div>
+          </div>
+        </div>
+    */
+    #modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    #modal.open { display: flex; }
+
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(6px);
+      cursor: pointer;
+    }
+
+    .modal-box {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-close {
+      position: sticky;
+      top: 0;
+      display: flex;
+      justify-content: flex-end;
+      padding: 1rem 1rem 0;
+      background: var(--surface);
+      z-index: 2;
+    }
+
+    .close-btn {
+      background: var(--border);
+      border: none;
+      color: var(--text);
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background var(--transition);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .close-btn:hover { background: var(--accent2); }
+
+    .modal-inner {
+      display: flex;
+      gap: 2rem;
+      padding: 1rem 2rem 2rem;
+    }
+
+    .modal-poster {
+      width: 200px;
+      min-width: 200px;
+      border-radius: 10px;
+      object-fit: cover;
+      align-self: flex-start;
+      border: 1px solid var(--border);
+    }
+
+    .modal-info { flex: 1; }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .modal-tagline {
+      font-style: italic;
+      color: var(--accent);
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .modal-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .badge.accent { border-color: var(--accent); color: var(--accent); }
+
+    .modal-overview {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: #b8b5ae;
+    }
+
+    .modal-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 2px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 560px) {
+      .modal-inner { flex-direction: column; }
+      .modal-poster { width: 100%; min-width: unset; }
+      .modal-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Cine<span>Search</span></div>
+    <p class="tagline">Cerca qualsiasi film</p>
+  </header>
+
+  <!-- BARRA DI RICERCA -->
+  <section class="search-section">
+    <div class="search-wrapper">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Es. Inception, Il Padrino, Interstellar…"
+        autocomplete="off"
+      />
+      <button id="searchBtn">Cerca</button>
+    </div>
+  </section>
+
+  <!--
+    AREA STATO
+    Gestiscila in app.js — mostra messaggi, spinner, errori.
+    Esempio: statusEl.innerHTML = '<div class="spinner"></div>'
+  -->
+  <div id="status">Digita un titolo per iniziare.</div>
+
+  <!--
+    GRIGLIA RISULTATI
+    Crea le .movie-card in app.js e inseriscile qui.
+    Svuotala prima di ogni nuova ricerca: resultsGrid.innerHTML = ''
+  -->
+  <div id="results"></div>
+
+  <!--
+    MODAL DETTAGLI
+    Apri:  modal.classList.add('open')
+    Chiudi: modal.classList.remove('open')
+    Collega il click per chiudere a #closeModal e #modalOverlay.
+    Riempi #modalContent con innerHTML.
+  -->
+  <div id="modal" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal-box">
+      <div class="modal-close">
+        <button class="close-btn" id="closeModal" aria-label="Chiudi">✕</button>
+      </div>
+      <div class="modal-inner" id="modalContent">
+        <!-- Riempito da app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Il tuo file JS — tutto da scrivere! -->
+  <script src="../js/app.js"></script>
+
+</body>
+</html>
