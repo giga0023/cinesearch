@@ -120,13 +120,6 @@
     #searchBtn:hover { background: #f5cc6a; }
 
     /* ── AREA STATO ── */
-    /*
-      Questo div mostra messaggi di stato: "Caricamento...", errori, ecc.
-      Gestiscilo in app.js con: statusEl.innerHTML = '...'
-
-      Per lo spinner di caricamento usa:
-        statusEl.innerHTML = '<div class="spinner"></div>'
-    */
     #status {
       text-align: center;
       padding: 2rem;
@@ -147,23 +140,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── GRIGLIA RISULTATI ── */
-    /*
-      Le .movie-card vanno create in app.js e inserite qui.
-      Struttura HTML attesa per ogni card:
-
-        <div class="movie-card">
-          <img class="card-poster" src="..." alt="..." />
-          <div class="card-body">
-            <div class="card-title">Titolo del film</div>
-            <div class="card-meta">
-              <span class="card-year">2010</span>
-              <span class="card-rating">★ 8.2</span>
-            </div>
-          </div>
-        </div>
-
-      Aggiungi un click listener a ogni card per aprire il modal con i dettagli.
-    */
     #results {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -226,47 +202,6 @@
     .card-rating { font-size: 0.78rem; font-weight: 500; color: var(--accent); }
 
     /* ── MODAL DETTAGLI ── */
-    /*
-      Apri il modal aggiungendo la classe "open":   modal.classList.add('open')
-      Chiudi il modal rimuovendola:                 modal.classList.remove('open')
-
-      Metti i listener di chiusura su:
-        - #closeModal  (bottone X)
-        - #modalOverlay (sfondo scuro)
-
-      Riempi #modalContent con innerHTML in app.js.
-      Struttura HTML attesa per il contenuto del modal:
-
-        <img class="modal-poster" src="..." alt="..." />
-        <div class="modal-info">
-          <h2 class="modal-title">Titolo</h2>
-          <p class="modal-tagline">Tagline del film</p>
-
-          <div class="modal-badges">
-            <span class="badge accent">★ 8.2</span>
-            <span class="badge">2010</span>
-            <span class="badge">148 min</span>
-            <span class="badge">Azione</span>   ← uno per ogni genere
-          </div>
-
-          <p class="modal-overview">Trama del film...</p>
-
-          <div class="modal-stats">
-            <div class="stat-item">
-              <div class="stat-value">$160M</div>
-              <div class="stat-label">Budget</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">$836M</div>
-              <div class="stat-label">Incasso</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">74</div>
-              <div class="stat-label">Metascore</div>
-            </div>
-          </div>
-        </div>
-    */
     #modal {
       display: none;
       position: fixed;
@@ -440,27 +375,13 @@
     </div>
   </section>
 
-  <!--
-    AREA STATO
-    Gestiscila in app.js — mostra messaggi, spinner, errori.
-    Esempio: statusEl.innerHTML = '<div class="spinner"></div>'
-  -->
+  <!--AREA STATO-->
   <div id="status">Digita un titolo per iniziare.</div>
 
-  <!--
-    GRIGLIA RISULTATI
-    Crea le .movie-card in app.js e inseriscile qui.
-    Svuotala prima di ogni nuova ricerca: resultsGrid.innerHTML = ''
-  -->
+  <!--GRIGLIA RISULTATI-->
   <div id="results"></div>
 
-  <!--
-    MODAL DETTAGLI
-    Apri:  modal.classList.add('open')
-    Chiudi: modal.classList.remove('open')
-    Collega il click per chiudere a #closeModal e #modalOverlay.
-    Riempi #modalContent con innerHTML.
-  -->
+  <!--MODAL DETTAGLI-->
   <div id="modal" role="dialog" aria-modal="true">
     <div class="modal-overlay" id="modalOverlay"></div>
     <div class="modal-box">
@@ -473,7 +394,6 @@
     </div>
   </div>
 
-  <!-- Il tuo file JS — tutto da scrivere! -->
   <script src="../js/app.js"></script>
 
 </body>
